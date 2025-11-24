@@ -1,4 +1,42 @@
-combine the APIs or app functions with the GenAI functionality in the simplest way so that if the user asks to
-insert some data the 
-ai model can call the code to do that. 
-only use frameworks like semantic kernal if there is no other simpler way to do it
+Implement Azure OpenAI function calling in the chat service to enable the AI assistant to execute real
+operations against the application's backend services.
+
+Requirements:
+
+1. Analyze the existing codebase to identify:
+   - Available service methods that should be exposed to the LLM
+   - Their input parameters and return types
+   - Data models used by the application
+
+2. Define function tools (ChatCompletionsFunctionToolDefinition) for each operation:
+   - Use clear, descriptive function names
+   - Provide detailed descriptions of what each function does
+   - Define JSON schemas for all parameters with proper types and descriptions
+   - Mark required vs optional parameters
+
+3. Implement the function calling orchestration loop:
+   - Send function definitions to the LLM with the chat request
+   - Detect when the LLM returns tool_calls in the response
+   - Parse tool call arguments and execute the corresponding service methods
+   - Collect results from executed functions
+   - Send function results back to the LLM as function messages
+   - Repeat if the LLM makes additional tool calls
+   - Return the final natural language response to the user
+
+4. Error handling:
+   - Gracefully handle service method failures
+   - Return error information to the LLM so it can inform the user
+   - Validate function arguments before execution
+   - Log errors appropriately
+
+5. Update the system prompt to:
+   - Inform the AI it has access to real functions
+   - List available capabilities
+   - Provide guidance on when to use each function
+
+6. Format responses appropriately:
+   - Serialize complex objects to JSON for function results
+   - Ensure the LLM provides user-friendly responses after executing operations
+   - Handle empty results gracefully
+
+Only modify the chat service layer - don't change existing backend services or data access code. Use dependency injection to access required services.
