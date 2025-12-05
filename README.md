@@ -13,5 +13,7 @@ Steps to modernise an app:
 6. Open terminal and type "az login" to set subscription/context
 7. Then type "bash deploy.sh" to deploy the app and db or "bash deploy-with-chat.sh" to deploy the app, db and chat UI.
 
+See video: https://github.com/DougChisholm/App-Mod-Booster/blob/video-in-readme/AppModBooster_0.6.mp4
+
 Supporting slides for Microsoft Employees:
 [Here](<https://microsofteur-my.sharepoint.com/:p:/g/personal/dchisholm_microsoft_com/IQAY41LQ12fjSIfFz3ha4hfFAZc7JQQuWaOrF7ObgxRK6f4?e=p6arJs>)
