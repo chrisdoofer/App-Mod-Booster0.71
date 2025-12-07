@@ -123,10 +123,10 @@ output databaseName string = azureSQL.outputs.databaseName
 output appInsightsConnectionString string = monitoring.outputs.appInsightsConnectionString
 
 @description('The endpoint for Azure OpenAI (empty if not deployed)')
-output openAIEndpoint string = deployGenAI ? genAI.outputs.openAIEndpoint : ''
+output openAIEndpoint string = deployGenAI ? genAI.?outputs.?openAIEndpoint ?? '' : ''
 
 @description('The name of the OpenAI model deployment (empty if not deployed)')
-output openAIModelName string = deployGenAI ? genAI.outputs.openAIModelName : ''
+output openAIModelName string = deployGenAI ? genAI.?outputs.?openAIModelName ?? '' : ''
 
 @description('The endpoint for Azure AI Search (empty if not deployed)')
-output searchEndpoint string = deployGenAI ? genAI.outputs.searchEndpoint : ''
+output searchEndpoint string = deployGenAI ? genAI.?outputs.?searchEndpoint ?? '' : ''
