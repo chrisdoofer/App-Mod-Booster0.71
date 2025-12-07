@@ -50,8 +50,25 @@ See prompt-008-use-existing-db and prompt-025-clientid-for-chat for the exact fo
 
 ## Troubleshooting
 
-If deployment issues occur, check prompt-023-deployment-order-considerations for common problems and solutions.
+If you run into deployment issues, check prompt-023-deployment-order-considerations for common problems and how to solve them.
 
-## Important Note
+## Don't Skip the Chat Page
 
-If the agent cannot find a prompt file with an exact matching name, skip to the next one - don't try to make up content.
+The prompt-010-add-chat-ui creates the Chat page files (Chat.cshtml, Chat.cshtml.cs, and ChatService.cs). These files must always be created, even when GenAI resources aren't being deployed. The chat page should display a friendly "not configured" message when GenAI isn't available, rather than being missing entirely.
+
+If you notice these files are missing after a build, go back and run prompt-010-add-chat-ui to create them.
+
+## Before You Finish
+
+Do a quick check to make sure these key files exist:
+
+- src/ExpenseManagement/Pages/Chat.cshtml
+- src/ExpenseManagement/Pages/Chat.cshtml.cs
+- src/ExpenseManagement/Services/ChatService.cs
+- deploy-infra/deploy.ps1
+- deploy-app/deploy.ps1
+- deploy-all.ps1
+
+## One More Thing
+
+If a prompt file can't be found with the exact name listed, just skip it and move on to the next one - don't try to guess what it should contain.

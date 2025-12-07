@@ -1,22 +1,41 @@
-The GenAI deployment is handled by a switch on the main infrastructure deployment script, not a separate file.
+# Chat UI Deployment - No Separate Script Needed
 
-Do NOT create separate .sh or bash scripts. Use the existing PowerShell deployment script with the -DeployGenAI switch:
+The GenAI resources are deployed using a switch on the main infrastructure script - you don't need to create a separate deployment script for the chat.
+
+Just use the existing PowerShell script with the -DeployGenAI flag:
 
     .\deploy-infra\deploy.ps1 -ResourceGroup "rg-yourapp-YYYYMMDD" -Location "uksouth" -DeployGenAI
 
-This single script handles everything:
+This single script takes care of everything:
 
-1. Deploys all base infrastructure (App Service, SQL, Managed Identity, Monitoring)
-2. When -DeployGenAI is specified, also deploys Azure OpenAI and AI Search
-3. Retrieves the GenAI endpoints from deployment outputs
-4. Configures the App Service with OpenAI and Search endpoint settings
-5. Saves all configuration to the deployment context file
+1. Deploys the base infrastructure (App Service, SQL, Managed Identity, Monitoring)
+2. When you include -DeployGenAI, it also deploys Azure OpenAI and AI Search
+3. Retrieves the GenAI endpoints from the deployment outputs
+4. Configures the App Service with the OpenAI settings
+5. Saves the configuration to the deployment context file
 
-The chat UI is always deployed as part of the application. When GenAI resources exist, it connects to them. When they don't exist, it shows a friendly message explaining how to deploy with the -DeployGenAI switch.
+## The Chat Page Must Always Exist
 
-This approach means:
+This is important: the Chat page files (Chat.cshtml, Chat.cshtml.cs, and ChatService.cs) must always be created as part of the application code. They're built by prompt-010-add-chat-ui and are not optional.
 
-- One deployment script, not multiple
-- PowerShell only, no bash/shell scripts
-- Consistent deployment experience
-- Easy to add or skip GenAI resources
+The chat UI behaves differently depending on whether GenAI resources are available:
+
+- When GenAI is deployed: The chat connects to Azure OpenAI and works fully
+- When GenAI isn't deployed: The chat page shows a friendly message explaining how to enable AI features
+
+This approach gives you:
+
+- A single deployment script instead of multiple
+- PowerShell only (no bash scripts needed)
+- A consistent experience whether or not you deploy GenAI
+- A chat page that's always accessible, even if it's just showing a "not configured" message
+
+## Quick Check
+
+After building the application, make sure these files exist:
+
+- src/ExpenseManagement/Pages/Chat.cshtml
+- src/ExpenseManagement/Pages/Chat.cshtml.cs
+- src/ExpenseManagement/Services/ChatService.cs
+
+If any are missing, run prompt-010-add-chat-ui again to create them.

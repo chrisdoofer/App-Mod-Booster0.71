@@ -30,10 +30,42 @@ The script should:
 
 ## Error Handling
 
-If either deployment fails:
-- Display a clear error message indicating which phase failed
-- Provide guidance on how to retry (e.g., "Run deploy-infra/deploy.ps1 to retry infrastructure")
-- Exit with a non-zero code
+If either deployment fails, make sure to:
+
+- Show a clear error message explaining which step failed
+- Give the user guidance on how to retry (for example, "Run deploy-infra/deploy.ps1 to retry the infrastructure deployment")
+- Exit with a non-zero code so calling scripts know something went wrong
+
+## Passing Parameters to Child Scripts
+
+When calling the infrastructure and app deployment scripts, use a hashtable to pass the parameters. This is important because PowerShell handles hashtable splatting differently from arrays.
+
+Here's the right way to do it:
+
+```powershell
+$infraArgs = @{
+    ResourceGroup = $ResourceGroup
+    Location = $Location
+    BaseName = $BaseName
+}
+
+if ($DeployGenAI) {
+    $infraArgs["DeployGenAI"] = $true
+}
+
+& $infraScript @infraArgs
+```
+
+Don't build parameters as an array of strings - that causes "positional parameter cannot be found" errors because PowerShell doesn't recognize them as named parameters:
+
+```powershell
+# This won't work correctly
+$infraArgs = @(
+    "-ResourceGroup", $ResourceGroup,
+    "-Location", $Location
+)
+& $infraScript @infraArgs
+```
 
 ## Example Usage
 

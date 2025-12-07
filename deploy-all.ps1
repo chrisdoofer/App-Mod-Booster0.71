@@ -78,14 +78,14 @@ Write-Host "STEP 1: Infrastructure Deployment" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Yellow
 Write-Host ""
 
-$infraArgs = @(
-    "-ResourceGroup", $ResourceGroup,
-    "-Location", $Location,
-    "-BaseName", $BaseName
-)
+$infraArgs = @{
+    ResourceGroup = $ResourceGroup
+    Location = $Location
+    BaseName = $BaseName
+}
 
 if ($DeployGenAI) {
-    $infraArgs += "-DeployGenAI"
+    $infraArgs["DeployGenAI"] = $true
 }
 
 try {

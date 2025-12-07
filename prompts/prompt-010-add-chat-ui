@@ -1,25 +1,50 @@
-Create a chat interface as a Razor Page within the main application (src/ExpenseManagement/Pages/Chat.cshtml) that lets users interact with the database using natural language.
+# Create the Chat Interface
 
-Do NOT create a separate "chatui" folder - the chat should be integrated into the existing ASP.NET application.
+Build a chat page that lets users talk to the expense database using natural language. This is a core feature of the application - the chat page must always exist, even when GenAI resources haven't been deployed yet.
 
-The chat should:
-- Connect to the Azure GenAI resources (OpenAI and AI Search) configured earlier
-- Use the application's APIs to read and write data - never query the database directly
-- Apply the RAG (Retrieval-Augmented Generation) pattern using any contextual information in the RAG folder
+## What You Need to Create
 
-If you need additional Azure resources for RAG, use the lowest cost development SKUs (preferably S0).
+You'll need to add three new files to the project:
 
-When the chat displays lists from the database, format them nicely within the chat bubble. Since the list appears inside a chat message, follow this approach:
+1. A Razor Page for the chat interface at src/ExpenseManagement/Pages/Chat.cshtml
+2. The page model (code-behind) at src/ExpenseManagement/Pages/Chat.cshtml.cs  
+3. A service to handle the Azure OpenAI communication at src/ExpenseManagement/Services/ChatService.cs
 
-1. **Escape HTML first** - Convert special characters (<, >, &) to HTML entities to prevent security issues and stop raw HTML from displaying as text
+You'll also need to add the Azure.AI.OpenAI and Azure.Identity NuGet packages to the project.
 
-2. **Then apply formatting** - After escaping, convert markdown-style syntax to HTML:
-   - `**text**` becomes `<strong>text</strong>` for bold
-   - Lines starting with `1.` become ordered lists (`<ol><li>`)
-   - Lines starting with `-` or `*` become bullet lists (`<ul><li>`)
-   - `\n` becomes `<br>` for line breaks
+## How the Chat Should Work
 
-3. **Use innerHTML, not textContent** - So the formatted HTML actually renders as styled elements instead of showing the raw tags
+The chat interface should be part of the main application - don't create a separate "chatui" folder. Keep it integrated with the existing ASP.NET structure.
 
-Without this approach, you'll see raw HTML tags like `<li>Item</li>` displayed as plain text instead of actual formatted lists.
+When users type messages, the chat should:
+
+- Connect to Azure OpenAI using the GenAI settings configured during deployment
+- Use the application's existing APIs to read and write expense data (never query the database directly)
+- Format responses nicely, especially when displaying lists of expenses
+
+## Handle Missing GenAI Configuration Gracefully
+
+Here's the key point: the chat page must always be created, but it should handle the case where GenAI hasn't been deployed yet.
+
+When the OpenAI endpoint isn't configured, display a friendly message like "AI Chat is not available yet. To enable it, redeploy using the -DeployGenAI switch." Check for this when the page loads, not just when someone tries to send a message.
+
+A simple way to check this in the ChatService:
+
+```csharp
+public bool IsConfigured => !string.IsNullOrEmpty(_configuration["GenAISettings:OpenAIEndpoint"]);
+```
+
+## Formatting Chat Responses
+
+When the AI returns lists (like a list of expenses), format them nicely within the chat bubble:
+
+1. First, escape any HTML characters to prevent security issues
+2. Then convert markdown-style formatting to HTML (bold text, numbered lists, bullet points)
+3. Use innerHTML rather than textContent so the formatting actually renders
+
+Without this approach, users would see raw HTML tags instead of properly formatted lists.
+
+## Add Navigation
+
+Add a "Chat" link to the site navigation in the shared layout file so users can easily find the chat page.
 
