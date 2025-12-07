@@ -49,6 +49,22 @@ Critical implementation details:
 
 5. VS Code's integrated terminal may use a cached PATH. If sqlcmd errors occur, recommend running from a standalone PowerShell terminal or restarting VS Code.
 
+6. When passing parameters to Azure CLI commands like `az deployment group create`, you cannot pass a PowerShell hashtable directly. Use inline key=value pairs instead:
+
+   Correct approach:
+   ```powershell
+   az deployment group create `
+       --resource-group $ResourceGroup `
+       --template-file "./main.bicep" `
+       --parameters location=$Location baseName=$BaseName deployGenAI=$($DeployGenAI.ToString().ToLower())
+   ```
+
+   Wrong approach (causes "Unable to parse parameter: System.Collections.Hashtable" error):
+   ```powershell
+   $params = @{ location = $Location; baseName = $BaseName }
+   az deployment group create --parameters $params  # This fails!
+   ```
+
 See also: prompt-016-sqlcmd-for-sql for detailed sqlcmd usage, prompt-028-github-actions-cicd for CI/CD considerations.
 
 Prerequisites: Azure CLI, go-sqlcmd (install with winget install sqlcmd), and PowerShell 7+ recommended.

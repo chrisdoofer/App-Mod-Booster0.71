@@ -75,17 +75,19 @@ Also verify the deploy-all.ps1 script uses hashtable splatting (not array splatt
 
 These issues have caused problems in past builds - please avoid them:
 
-1. **PowerShell parameter passing**: When one script calls another with parameters, use hashtable splatting (`@{ Key = Value }`) not array splatting (`@("-Key", Value)`). Array splatting causes "positional parameter cannot be found" errors.
+1. **PowerShell script-to-script parameter passing**: When one PowerShell script calls another with parameters, use hashtable splatting (`@{ Key = Value }`) not array splatting (`@("-Key", Value)`). Array splatting causes "positional parameter cannot be found" errors.
 
-2. **Missing Chat page**: The Chat.cshtml page must always be created, even without GenAI. It should gracefully show "not configured" instead of being absent.
+2. **Azure CLI parameter passing**: When calling `az deployment group create --parameters`, you cannot pass a PowerShell hashtable. Use inline `key=value` pairs instead. Passing a hashtable causes "Unable to parse parameter: System.Collections.Hashtable" errors.
 
-3. **Bicep utcNow() usage**: Never use `utcNow()` in variable declarations - it's only allowed as a parameter default value.
+3. **Missing Chat page**: The Chat.cshtml page must always be created, even without GenAI. It should gracefully show "not configured" instead of being absent.
 
-4. **SQL connection string format**: Must include `Authentication=Active Directory Managed Identity;User Id={clientId}` - don't use `Trusted_Connection` or Windows auth.
+4. **Bicep utcNow() usage**: Never use `utcNow()` in variable declarations - it's only allowed as a parameter default value.
 
-5. **Resource naming**: Azure OpenAI and AI Search names must be lowercase. Apply `toLower()` when using `uniqueString()`.
+5. **SQL connection string format**: Must include `Authentication=Active Directory Managed Identity;User Id={clientId}` - don't use `Trusted_Connection` or Windows auth.
 
-6. **Sqlcmd piping**: Never pipe SQL directly to sqlcmd - always write to a temp file first, then use `-i` to execute it.
+6. **Resource naming**: Azure OpenAI and AI Search names must be lowercase. Apply `toLower()` when using `uniqueString()`.
+
+7. **Sqlcmd piping**: Never pipe SQL directly to sqlcmd - always write to a temp file first, then use `-i` to execute it.
 
 ## One More Thing
 

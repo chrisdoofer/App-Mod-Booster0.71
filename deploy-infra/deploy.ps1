@@ -150,15 +150,6 @@ Write-Host ""
 Write-Host "Deploying infrastructure..." -ForegroundColor Yellow
 Write-Host "This may take 5-10 minutes..." -ForegroundColor Gray
 
-$deployParams = @{
-    location            = $Location
-    baseName            = $BaseName
-    adminObjectId       = $adminObjectId
-    adminUsername       = $adminUsername
-    adminPrincipalType  = $adminPrincipalType
-    deployGenAI         = $DeployGenAI.IsPresent
-}
-
 $deploymentName = "infra-$(Get-Date -Format 'yyyyMMddHHmmss')"
 
 try {
@@ -166,7 +157,12 @@ try {
         --resource-group $ResourceGroup `
         --name $deploymentName `
         --template-file "$PSScriptRoot/main.bicep" `
-        --parameters $deployParams `
+        --parameters location=$Location `
+                     baseName=$BaseName `
+                     adminObjectId=$adminObjectId `
+                     adminUsername=$adminUsername `
+                     adminPrincipalType=$adminPrincipalType `
+                     deployGenAI=$($DeployGenAI.IsPresent.ToString().ToLower()) `
         --output json | ConvertFrom-Json
     
     Write-Host "✓ Infrastructure deployed successfully" -ForegroundColor Green
