@@ -1,10 +1,155 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Expense Management";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4">Expense Management System</h1>
+            <p class="lead">Manage and track your business expenses</p>
+        </div>
+    </div>
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Expenses</h5>
+                    <p class="card-text display-6">@Model.Expenses.Count</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Approval</h5>
+                    <p class="card-text display-6">@Model.Expenses.Count(e => e.StatusName == "Submitted")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Approved</h5>
+                    <p class="card-text display-6">@Model.Expenses.Count(e => e.StatusName == "Approved")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Expenses</h5>
+                    <div>
+                        <a href="/AddExpense" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Expense
+                        </a>
+                        <a href="/ApproveExpenses" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Approve Expenses
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.Expenses.Any())
+                    {
+                        <div class="mb-3">
+                            <input type="text" id="searchBox" class="form-control" placeholder="Search expenses...">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="expensesTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>User</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var expense in Model.Expenses.OrderByDescending(e => e.ExpenseDate))
+                                    {
+                                        <tr>
+                                            <td>@expense.ExpenseId</td>
+                                            <td>@expense.ExpenseDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@expense.UserName</td>
+                                            <td>@expense.CategoryName</td>
+                                            <td>£@expense.AmountGBP.ToString("N2")</td>
+                                            <td>@expense.Description</td>
+                                            <td>
+                                                @{
+                                                    var badgeClass = expense.StatusName switch
+                                                    {
+                                                        "Draft" => "bg-secondary",
+                                                        "Submitted" => "bg-warning",
+                                                        "Approved" => "bg-success",
+                                                        "Rejected" => "bg-danger",
+                                                        _ => "bg-secondary"
+                                                    };
+                                                }
+                                                <span class="badge @badgeClass">@expense.StatusName</span>
+                                            </td>
+                                            <td>
+                                                <a href="/ViewExpense?id=@expense.ExpenseId" class="btn btn-sm btn-info">View</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>No expenses found. <a href="/AddExpense">Add your first expense</a></p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h5>Quick Links</h5>
+            <div class="list-group">
+                <a href="/swagger" class="list-group-item list-group-item-action">
+                    <i class="bi bi-code-square"></i> API Documentation (Swagger)
+                </a>
+                <a href="/Chat" class="list-group-item list-group-item-action">
+                    <i class="bi bi-chat-dots"></i> AI Chat Assistant
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Simple client-side search
+        document.getElementById('searchBox').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#expensesTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+}
