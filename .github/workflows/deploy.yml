@@ -4,15 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       resourceGroup:
-        description: 'Resource Group Name'
+        description: 'Azure Resource Group name (should be unique with date)'
         required: true
         default: 'rg-expensemgmt-cicd'
       location:
-        description: 'Azure Region'
+        description: 'Azure region (e.g., uksouth, eastus)'
         required: true
         default: 'uksouth'
+      baseName:
+        description: 'Base name for resources'
+        required: false
+        default: 'expensemgmt'
       deployGenAI:
-        description: 'Deploy GenAI Resources'
+        description: 'Deploy GenAI resources (Azure OpenAI and AI Search)'
         required: false
         type: boolean
         default: false
@@ -49,6 +53,7 @@ jobs:
       
       - name: Install sqlcmd
         run: |
+          echo "Installing go-sqlcmd from GitHub releases..."
           curl -sSL -o sqlcmd.tar.bz2 https://github.com/microsoft/go-sqlcmd/releases/download/v1.8.0/sqlcmd-linux-amd64.tar.bz2
           sudo tar -xjf sqlcmd.tar.bz2 -C /usr/local/bin
           sqlcmd --version
@@ -59,6 +64,7 @@ jobs:
           $params = @{
               ResourceGroup = "${{ github.event.inputs.resourceGroup }}"
               Location = "${{ github.event.inputs.location }}"
+              BaseName = "${{ github.event.inputs.baseName }}"
           }
           
           if ("${{ github.event.inputs.deployGenAI }}" -eq "true") {
@@ -79,8 +85,27 @@ jobs:
       
       - name: Deployment Summary
         run: |
-          echo "### Deployment Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Resource Group:** ${{ github.event.inputs.resourceGroup }}" >> $GITHUB_STEP_SUMMARY
           echo "**Location:** ${{ github.event.inputs.location }}" >> $GITHUB_STEP_SUMMARY
           echo "**GenAI Deployed:** ${{ github.event.inputs.deployGenAI }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f ".deployment-context.json" ]; then
+            echo "**Application URLs:**" >> $GITHUB_STEP_SUMMARY
+            CONTEXT=$(cat .deployment-context.json)
+            WEB_APP_NAME=$(echo $CONTEXT | jq -r '.webAppName')
+            echo "- Main App: https://${WEB_APP_NAME}.azurewebsites.net/Index" >> $GITHUB_STEP_SUMMARY
+            echo "- API Docs: https://${WEB_APP_NAME}.azurewebsites.net/swagger" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ github.event.inputs.deployGenAI }}" = "true" ]; then
+              echo "- AI Chat: https://${WEB_APP_NAME}.azurewebsites.net/Chat" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+      
+      - name: Upload deployment context
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployment-context
+          path: .deployment-context.json
+          retention-days: 30
