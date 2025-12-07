@@ -184,10 +184,6 @@
                 escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
                 escaped = escaped.replace(/__(.+?)__/g, '<strong>$1</strong>');
 
-                // Convert markdown-style italic (*text* or _text_)
-                escaped = escaped.replace(/\*(.+?)\*/g, '<em>$1</em>');
-                escaped = escaped.replace(/_(.+?)_/g, '<em>$1</em>');
-
                 // Convert line breaks
                 escaped = escaped.replace(/\n/g, '<br>');
 
@@ -195,14 +191,24 @@
                 escaped = escaped.replace(/^(\d+)\.\s+(.+?)$/gm, '<li>$2</li>');
                 
                 // Wrap consecutive <li> in <ol>
-                escaped = escaped.replace(/(<li>.*?<\/li>)(<br>)?(?=<li>|$)/gs, '$1');
-                escaped = escaped.replace(/(<li>.*?<\/li>)+/gs, '<ol>$&</ol>');
+                escaped = escaped.replace(/(<li>.*?<\/li>(<br>)?)+/gs, function(match) {
+                    // Check if already wrapped in list tags
+                    if (match.indexOf('<ol>') === -1 && match.indexOf('<ul>') === -1) {
+                        return '<ol>' + match.replace(/<br>/g, '') + '</ol>';
+                    }
+                    return match;
+                });
 
                 // Convert bullet lists (-, *)
                 escaped = escaped.replace(/^[-*]\s+(.+?)$/gm, '<li>$1</li>');
                 
-                // Wrap consecutive bullet <li> in <ul> (but not already in <ol>)
-                escaped = escaped.replace(/(?<!<ol>)(<li>.*?<\/li>)+(?!<\/ol>)/gs, '<ul>$&</ul>');
+                // Wrap consecutive bullet <li> in <ul> if not already wrapped
+                escaped = escaped.replace(/(<li>.*?<\/li>(<br>)?)+/gs, function(match) {
+                    if (match.indexOf('<ol>') === -1 && match.indexOf('<ul>') === -1) {
+                        return '<ul>' + match.replace(/<br>/g, '') + '</ul>';
+                    }
+                    return match;
+                });
 
                 return escaped;
             }

@@ -233,7 +233,7 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "get_expenses_by_status":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
                         var statusName = args?["statusName"].GetString() ?? "";
                         var expenses = await _expenseService.GetExpensesByStatusAsync(statusName);
                         return JsonSerializer.Serialize(expenses);
@@ -241,7 +241,7 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "get_expense_by_id":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
                         var expenseId = args?["expenseId"].GetInt32() ?? 0;
                         var expense = await _expenseService.GetExpenseByIdAsync(expenseId);
                         return JsonSerializer.Serialize(expense);
@@ -249,11 +249,19 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "create_expense":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
+                        var dateString = args?["expenseDate"].GetString() ?? DateTime.Now.ToString("yyyy-MM-dd");
+                        
+                        if (!DateTime.TryParse(dateString, out var expenseDate))
+                        {
+                            expenseDate = DateTime.Now;
+                            _logger.LogWarning("Invalid date format: {DateString}, using current date", dateString);
+                        }
+                        
                         var request = new CreateExpenseRequest
                         {
                             Amount = args?["amount"].GetDecimal() ?? 0,
-                            ExpenseDate = DateTime.Parse(args?["expenseDate"].GetString() ?? DateTime.Now.ToString("yyyy-MM-dd")),
+                            ExpenseDate = expenseDate,
                             CategoryId = args?["categoryId"].GetInt32() ?? 0,
                             Description = args?["description"].GetString() ?? "",
                             UserId = args?["userId"].GetInt32() ?? 0
@@ -264,7 +272,7 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "submit_expense":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
                         var expenseId = args?["expenseId"].GetInt32() ?? 0;
                         var expense = await _expenseService.SubmitExpenseAsync(expenseId);
                         return JsonSerializer.Serialize(new { success = true, expense });
@@ -272,7 +280,7 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "approve_expense":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
                         var request = new ApproveExpenseRequest
                         {
                             ExpenseId = args?["expenseId"].GetInt32() ?? 0,
@@ -284,7 +292,7 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "reject_expense":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
                         var request = new ApproveExpenseRequest
                         {
                             ExpenseId = args?["expenseId"].GetInt32() ?? 0,
@@ -296,7 +304,7 @@ Always confirm successful operations and provide helpful feedback.";
 
                 case "search_expenses":
                     {
-                        var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+                        var args = DeserializeArguments(functionArguments);
                         var filterText = args?["filterText"].GetString() ?? "";
                         var expenses = await _expenseService.SearchExpensesAsync(filterText);
                         return JsonSerializer.Serialize(expenses);
@@ -328,6 +336,19 @@ Always confirm successful operations and provide helpful feedback.";
         {
             _logger.LogError(ex, "Error executing function {FunctionName}", functionName);
             return JsonSerializer.Serialize(new { error = ex.Message });
+        }
+    }
+
+    private Dictionary<string, JsonElement>? DeserializeArguments(BinaryData functionArguments)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(functionArguments);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize function arguments: {Arguments}", functionArguments.ToString());
+            return null;
         }
     }
 }
