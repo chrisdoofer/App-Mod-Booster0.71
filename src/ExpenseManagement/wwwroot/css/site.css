@@ -1,0 +1,35 @@
+/* Custom styles for Expense Management Application */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.footer {
+    margin-top: 3rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Chat-specific styles */
+#chatContainer {
+    background-color: #f8f9fa;
+}
+
+#chatMessages p {
+    margin-bottom: 0.5rem;
+}
+
+#chatMessages p:last-child {
+    margin-bottom: 0;
+}

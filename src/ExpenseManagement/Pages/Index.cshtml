@@ -1,0 +1,163 @@
+@page
+@model ExpenseManagement.Pages.IndexModel
+@{
+    ViewData["Title"] = "Expense Dashboard";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Expense Dashboard
+        </h1>
+    </div>
+</div>
+
+@if (Model.UseDummyData)
+{
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>Using Sample Data</strong> - The application is running with sample data because the database connection is not available.
+    </div>
+}
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    @foreach (var summary in Model.ExpenseSummaries)
+    {
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-@GetStatusColor(summary.StatusName)">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">@summary.StatusName</h6>
+                    <h3 class="card-title">@summary.Count</h3>
+                    <p class="card-text text-@GetStatusColor(summary.StatusName)">
+                        £@summary.TotalAmount.ToString("N2")
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Filter Buttons -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="btn-group" role="group">
+            <a href="/Index" class="btn @(Model.FilterStatus == null ? "btn-primary" : "btn-outline-primary")">
+                All Expenses
+            </a>
+            <a href="/Index?status=Draft" class="btn @(Model.FilterStatus == "Draft" ? "btn-secondary" : "btn-outline-secondary")">
+                Drafts
+            </a>
+            <a href="/Index?status=Submitted" class="btn @(Model.FilterStatus == "Submitted" ? "btn-warning" : "btn-outline-warning")">
+                Pending
+            </a>
+            <a href="/Index?status=Approved" class="btn @(Model.FilterStatus == "Approved" ? "btn-success" : "btn-outline-success")">
+                Approved
+            </a>
+            <a href="/Index?status=Rejected" class="btn @(Model.FilterStatus == "Rejected" ? "btn-danger" : "btn-outline-danger")">
+                Rejected
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Expenses Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i> 
+                    @if (Model.FilterStatus != null)
+                    {
+                        @Model.FilterStatus <text>Expenses</text>
+                    }
+                    else
+                    {
+                        <text>All Expenses</text>
+                    }
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Expenses.Count == 0)
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No expenses found</p>
+                        <a href="/AddExpense" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Your First Expense
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Employee</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var expense in Model.Expenses)
+                                {
+                                    <tr>
+                                        <td>@expense.ExpenseId</td>
+                                        <td>@expense.ExpenseDate.ToString("dd/MM/yyyy")</td>
+                                        <td>@expense.UserName</td>
+                                        <td>
+                                            <span class="badge bg-info">@expense.CategoryName</span>
+                                        </td>
+                                        <td class="fw-bold">£@expense.Amount.ToString("N2")</td>
+                                        <td>
+                                            <span class="badge bg-@GetStatusColor(expense.StatusName)">
+                                                @expense.StatusName
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(expense.Description) && expense.Description.Length > 50)
+                                            {
+                                                @expense.Description.Substring(0, 50)<text>...</text>
+                                            }
+                                            else
+                                            {
+                                                @expense.Description
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Draft" => "secondary",
+            "Submitted" => "warning",
+            "Approved" => "success",
+            "Rejected" => "danger",
+            _ => "primary"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Auto-refresh every 30 seconds if needed
+        // setTimeout(() => location.reload(), 30000);
+    </script>
+}
