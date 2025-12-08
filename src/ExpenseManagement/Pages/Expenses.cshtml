@@ -1,0 +1,61 @@
+@page
+@model ExpenseManagement.Pages.ExpensesModel
+@{
+    ViewData["Title"] = "Expenses";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">All Expenses</h1>
+        <a href="/AddExpense" class="btn btn-primary">+ New Expense</a>
+    </div>
+
+    <div class="flex gap-2 mb-3">
+        <a href="/Expenses" class="btn @(string.IsNullOrEmpty(Model.StatusFilter) ? "btn-primary" : "btn-outline")">All</a>
+        <a href="/Expenses?status=Draft" class="btn @(Model.StatusFilter == "Draft" ? "btn-primary" : "btn-outline")">Draft</a>
+        <a href="/Expenses?status=Submitted" class="btn @(Model.StatusFilter == "Submitted" ? "btn-primary" : "btn-outline")">Submitted</a>
+        <a href="/Expenses?status=Approved" class="btn @(Model.StatusFilter == "Approved" ? "btn-primary" : "btn-outline")">Approved</a>
+        <a href="/Expenses?status=Rejected" class="btn @(Model.StatusFilter == "Rejected" ? "btn-primary" : "btn-outline")">Rejected</a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var expense in Model.Expenses)
+                {
+                    <tr>
+                        <td>#@expense.ExpenseId</td>
+                        <td>@expense.FormattedDate</td>
+                        <td>@expense.UserName</td>
+                        <td>@expense.CategoryName</td>
+                        <td>@expense.FormattedAmount</td>
+                        <td>
+                            <span class="badge badge-@expense.StatusName.ToLower()">@expense.StatusName</span>
+                        </td>
+                        <td>@expense.Description</td>
+                        <td>
+                            @if (expense.StatusName == "Draft")
+                            {
+                                <form method="post" asp-page-handler="Submit" asp-route-id="@expense.ExpenseId" style="display: inline;">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

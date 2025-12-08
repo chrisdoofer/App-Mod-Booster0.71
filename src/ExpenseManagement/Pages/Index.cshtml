@@ -1,0 +1,68 @@
+@page
+@model ExpenseManagement.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Expense Dashboard</h1>
+        <a href="/AddExpense" class="btn btn-primary">+ New Expense</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value">@Model.Stats?.TotalExpenses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Pending Approvals</div>
+            <div class="stat-value">@Model.Stats?.PendingApprovals</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Approved Amount</div>
+            <div class="stat-value">@Model.Stats?.FormattedApprovedAmount</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Approved Count</div>
+            <div class="stat-value">@Model.Stats?.ApprovedCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Recent Expenses</h2>
+        <a href="/Expenses" class="btn btn-secondary">View All</a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var expense in Model.RecentExpenses)
+                {
+                    <tr>
+                        <td>@expense.FormattedDate</td>
+                        <td>@expense.UserName</td>
+                        <td>@expense.CategoryName</td>
+                        <td>@expense.FormattedAmount</td>
+                        <td>
+                            <span class="badge badge-@expense.StatusName.ToLower()">@expense.StatusName</span>
+                        </td>
+                        <td>@expense.Description</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

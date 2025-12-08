@@ -1,0 +1,59 @@
+@page
+@model ExpenseManagement.Pages.ApprovalsModel
+@{
+    ViewData["Title"] = "Approvals";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Pending Approvals</h1>
+    </div>
+
+    <p class="mb-3">Expenses submitted for manager approval:</p>
+
+    @if (Model.PendingExpenses.Count == 0)
+    {
+        <p class="text-center" style="color: var(--text-secondary); padding: 2rem;">
+            No expenses pending approval.
+        </p>
+    }
+    else
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var expense in Model.PendingExpenses)
+                    {
+                        <tr>
+                            <td>#@expense.ExpenseId</td>
+                            <td>@expense.FormattedDate</td>
+                            <td>@expense.UserName</td>
+                            <td>@expense.CategoryName</td>
+                            <td>@expense.FormattedAmount</td>
+                            <td>@expense.Description</td>
+                            <td class="flex gap-1">
+                                <form method="post" asp-page-handler="Approve" asp-route-id="@expense.ExpenseId" style="display: inline;">
+                                    <button type="submit" class="btn btn-success">Approve</button>
+                                </form>
+                                <form method="post" asp-page-handler="Reject" asp-route-id="@expense.ExpenseId" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

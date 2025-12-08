@@ -1,0 +1,110 @@
+@page
+@model ExpenseManagement.Pages.ChatModel
+@{
+    ViewData["Title"] = "Chat Assistant";
+}
+
+<div class="card chat-container">
+    <div class="card-header">
+        <h1 class="card-title">💬 Chat Assistant</h1>
+        @if (Model.IsChatConfigured)
+        {
+            <span class="badge badge-approved">Connected</span>
+        }
+        else
+        {
+            <span class="badge badge-draft">Not Configured</span>
+        }
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-message assistant">
+            Hello! I'm your Expense Management assistant. I can help you:
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                <li>View and search expenses</li>
+                <li>Create new expense records</li>
+                <li>Get statistics and summaries</li>
+                <li>Approve or reject submitted expenses</li>
+            </ul>
+            <br/>
+            Try asking something like "Show me all pending expenses" or "Create an expense for £50 for lunch"
+        </div>
+    </div>
+
+    <div class="chat-input-container">
+        <input type="text" id="chatInput" class="form-input chat-input" placeholder="Type your message..." />
+        <button id="sendButton" class="btn btn-primary">Send</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatMessage(text) {
+            // First escape HTML
+            let formatted = escapeHtml(text);
+            
+            // Then apply markdown-style formatting
+            // Bold
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Code blocks
+            formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Line breaks
+            formatted = formatted.replace(/\n/g, '<br>');
+            
+            return formatted;
+        }
+
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isUser ? 'user' : 'assistant'}`;
+            messageDiv.innerHTML = isUser ? escapeHtml(content) : formatMessage(content);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            chatInput.value = '';
+            sendButton.disabled = true;
+            chatInput.disabled = true;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                addMessage(data.message, false);
+            } catch (error) {
+                addMessage('Sorry, I encountered an error. Please try again.', false);
+            } finally {
+                sendButton.disabled = false;
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+}

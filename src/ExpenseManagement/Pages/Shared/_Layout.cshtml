@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Expense Management</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="nav-icon">💳</span>
+                <a href="/Index">Expense Management</a>
+            </div>
+            <div class="nav-links">
+                <a href="/Index" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Dashboard</a>
+                <a href="/Expenses" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Expenses" ? "active" : "")">Expenses</a>
+                <a href="/AddExpense" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/AddExpense" ? "active" : "")">New Expense</a>
+                <a href="/Approvals" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Approvals" ? "active" : "")">Approvals</a>
+                <a href="/swagger" target="_blank">API Docs</a>
+                <a href="/Chat" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Chat" ? "active" : "")">💬 Chat</a>
+            </div>
+        </nav>
+    </header>
+    
+    @if (ViewData["Error"] != null)
+    {
+        <div class="error-banner">
+            <div class="error-content">
+                <strong>⚠️ @((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Message)</strong>
+                @if (!string.IsNullOrEmpty((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Details))
+                {
+                    <p class="error-details">@((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Details)</p>
+                }
+                @if (!string.IsNullOrEmpty((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Location))
+                {
+                    <p class="error-location">Location: @((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Location)</p>
+                }
+                @if (!string.IsNullOrEmpty((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Guidance))
+                {
+                    <p class="error-guidance">💡 @((ViewData["Error"] as ExpenseManagement.Models.ErrorInfo)?.Guidance)</p>
+                }
+            </div>
+        </div>
+    }
+    
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    <footer>
+        <p>&copy; @DateTime.Now.Year Expense Management System</p>
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
