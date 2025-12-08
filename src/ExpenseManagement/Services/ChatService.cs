@@ -258,12 +258,17 @@ public class ChatService : IChatService
                     return JsonSerializer.Serialize(summary);
 
                 case "create_expense":
+                    var dateStr = args.RootElement.GetProperty("expenseDate").GetString();
+                    if (!DateTime.TryParse(dateStr, out var expenseDate))
+                    {
+                        return JsonSerializer.Serialize(new { success = false, error = $"Invalid date format: {dateStr}" });
+                    }
                     var createRequest = new CreateExpenseRequest
                     {
                         UserId = args.RootElement.GetProperty("userId").GetInt32(),
                         CategoryId = args.RootElement.GetProperty("categoryId").GetInt32(),
                         Amount = args.RootElement.GetProperty("amount").GetDecimal(),
-                        ExpenseDate = DateTime.Parse(args.RootElement.GetProperty("expenseDate").GetString()!),
+                        ExpenseDate = expenseDate,
                         Description = args.RootElement.TryGetProperty("description", out var desc) ? desc.GetString() : null
                     };
                     var (expenseId, createError) = await _expenseService.CreateExpenseAsync(createRequest);

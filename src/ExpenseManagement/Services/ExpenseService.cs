@@ -222,7 +222,7 @@ public class ExpenseService : IExpenseService
                 CommandType = System.Data.CommandType.StoredProcedure
             };
 
-            var amountMinor = (int)(request.Amount * 100);
+            var amountMinor = (int)Math.Round(request.Amount * 100m, MidpointRounding.AwayFromZero);
             command.Parameters.AddWithValue("@UserId", request.UserId);
             command.Parameters.AddWithValue("@CategoryId", request.CategoryId);
             command.Parameters.AddWithValue("@AmountMinor", amountMinor);

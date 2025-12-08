@@ -158,15 +158,28 @@ if (-not $SkipDatabaseSetup) {
 
     # Add current IP to firewall
     Write-Host "Adding your IP to SQL Server firewall..." -ForegroundColor Gray
-    $myIp = (Invoke-RestMethod -Uri "https://api.ipify.org" -UseBasicParsing)
-    az sql server firewall-rule create `
-        --resource-group $ResourceGroup `
-        --server $sqlServerName `
-        --name "DeploymentClient" `
-        --start-ip-address $myIp `
-        --end-ip-address $myIp `
-        --output none 2>$null
-    Write-Host "Firewall rule added for IP: $myIp" -ForegroundColor Green
+    try {
+        $myIp = (Invoke-RestMethod -Uri "https://api.ipify.org" -UseBasicParsing -TimeoutSec 10)
+    } catch {
+        Write-Host "Warning: Could not detect IP from api.ipify.org. Trying fallback..." -ForegroundColor Yellow
+        try {
+            $myIp = (Invoke-RestMethod -Uri "https://checkip.amazonaws.com" -UseBasicParsing -TimeoutSec 10).Trim()
+        } catch {
+            Write-Host "Warning: Could not detect public IP. Please add your IP manually to SQL firewall." -ForegroundColor Yellow
+            $myIp = $null
+        }
+    }
+    
+    if ($myIp) {
+        az sql server firewall-rule create `
+            --resource-group $ResourceGroup `
+            --server $sqlServerName `
+            --name "DeploymentClient" `
+            --start-ip-address $myIp `
+            --end-ip-address $myIp `
+            --output none 2>$null
+        Write-Host "Firewall rule added for IP: $myIp" -ForegroundColor Green
+    }
 
     # Set authentication method based on environment
     $authMethod = if ($IsCI) { "ActiveDirectoryAzCli" } else { "ActiveDirectoryDefault" }
