@@ -1,0 +1,116 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Dashboard</h1>
+    <a asp-page="/AddExpense" class="btn btn-primary">
+        + New Expense
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-warning mb-4">
+        <strong>Note:</strong> @Model.ErrorMessage
+    </div>
+}
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h3 class="card-title text-primary">@Model.Stats.TotalExpenses</h3>
+                <p class="card-text text-muted">Total Expenses</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning bg-opacity-25">
+            <div class="card-body text-center">
+                <h3 class="card-title text-warning">@Model.Stats.PendingApprovals</h3>
+                <p class="card-text text-muted">Pending Approvals</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success bg-opacity-25">
+            <div class="card-body text-center">
+                <h3 class="card-title text-success">@Model.Stats.FormattedApprovedAmount</h3>
+                <p class="card-text text-muted">Approved Amount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info bg-opacity-25">
+            <div class="card-body text-center">
+                <h3 class="card-title text-info">@Model.Stats.ApprovedCount</h3>
+                <p class="card-text text-muted">Approved Count</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Expenses -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Expenses</h5>
+        <a asp-page="/Expenses" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>DATE</th>
+                        <th>EMPLOYEE</th>
+                        <th>CATEGORY</th>
+                        <th>AMOUNT</th>
+                        <th>STATUS</th>
+                        <th>DESCRIPTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var expense in Model.RecentExpenses)
+                    {
+                        <tr>
+                            <td>@expense.ExpenseDate.ToString("dd MMM yyyy")</td>
+                            <td>@expense.EmployeeName</td>
+                            <td>@expense.CategoryName</td>
+                            <td>@expense.FormattedAmount</td>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(expense.StatusName)">
+                                    @expense.StatusName.ToUpper()
+                                </span>
+                            </td>
+                            <td>@(expense.Description?.Length > 50 ? expense.Description.Substring(0, 47) + "..." : expense.Description)</td>
+                        </tr>
+                    }
+                    @if (!Model.RecentExpenses.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No expenses found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Approved" => "bg-success",
+            "Submitted" => "bg-warning text-dark",
+            "Draft" => "bg-secondary",
+            "Rejected" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
