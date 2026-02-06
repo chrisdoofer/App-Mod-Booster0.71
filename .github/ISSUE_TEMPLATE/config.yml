@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Agent Documentation
+    url: https://github.com/CHrisBDevOpsOpenHack/App-Mod-Booster0.7/blob/main/.github/agents/orchestrator-agent.md
+    about: Read the Orchestrator guide for sequencing, contracts, and validation checklists

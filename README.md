@@ -15,6 +15,112 @@ A modern, cloud-native expense management application built with ASP.NET 8 and d
 - **🤖 AI Chat (Optional)**: Natural language interface powered by Azure OpenAI
 - **📈 Monitoring**: Application Insights and Log Analytics integration
 
+---
+
+## 🤖 Building with AI Agents
+
+This repository is designed to be built by **AI coding agents**. Instead of a single agent handling everything, the work is split across **specialist agents** that each focus on one domain, delivering better accuracy and reliability.
+
+### Agent Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│               🎯 Orchestrator Agent                       │
+│  Manages sequencing, validates contracts between agents   │
+└─────┬──────┬──────────┬──────────┬──────────┬────────────┘
+      │      │          │          │          │
+  ┌───▼──┐ ┌─▼────┐ ┌──▼───┐ ┌───▼──┐ ┌────▼───┐
+  │Infra │ │  DB  │ │ .NET │ │DevOps│ │ Tester │
+  │Agent │ │Agent │ │Agent │ │Agent │ │ Agent  │
+  └──────┘ └──────┘ └──────┘ └──────┘ └────────┘
+```
+
+| Agent | Specialty | What It Builds |
+|-------|-----------|----------------|
+| 🏗️ **Infrastructure** | Bicep / Azure resources | `deploy-infra/modules/`, `main.bicep`, `main.bicepparam` |
+| 🗃️ **Database** | SQL schema & stored procedures | `Database-Schema/`, `stored-procedures.sql` |
+| 💻 **.NET Application** | ASP.NET 8 Razor Pages | `src/ExpenseManagement/` (pages, APIs, services, chat) |
+| 🚀 **DevOps** | Deployment & CI/CD | `deploy-*.ps1`, `.github/workflows/` |
+| 🧪 **Tester** | End-to-end testing | `tests/` (unit, integration, smoke tests) |
+| 🎯 **Orchestrator** | Coordination | Manages sequencing and validates contracts |
+
+### How to Use (Step-by-Step)
+
+The agents are triggered by creating **GitHub Issues** from pre-built templates. Each template is pre-filled with full instructions, deliverables, and a validation checklist.
+
+#### Prerequisites
+
+- GitHub Copilot coding agent enabled on your repository
+- The `.github/` folder from this repo (agents, issue templates, and shared instructions)
+
+#### Workflow
+
+```
+  ┌───────────────┐     ┌────────────────┐     ┌──────────────┐     ┌───────────┐
+  │ 1. New Issue   │────▶│ 2. Pick a      │────▶│ 3. Submit    │────▶│ 4. Assign │
+  │    button      │     │    template    │     │    issue     │     │ to Copilot│
+  └───────────────┘     └────────────────┘     └──────────────┘     └─────┬─────┘
+                                                                          │
+  ┌───────────────┐     ┌────────────────┐     ┌──────────────┐          │
+  │ 7. Next phase │◀────│ 6. Merge PR    │◀────│ 5. Review PR │◀─────────┘
+  └───────────────┘     └────────────────┘     └──────────────┘
+```
+
+1. Go to the **Issues** tab → click **New Issue**
+2. Choose the template for the phase you want to run
+3. Submit the issue (the body is already pre-filled — no editing needed)
+4. **Assign the issue to Copilot** to trigger the coding agent
+5. Copilot reads the instructions, creates a branch, and opens a PR
+6. Review the PR, verify the validation checklist, and merge
+7. Move to the next phase
+
+#### Phase Execution Order
+
+| Step | Template to Use | Dependencies | Can Parallel? |
+|------|----------------|--------------|---------------|
+| **Phase 1a** | 🏗️ Infrastructure Agent | None | ✅ Yes (with 1b) |
+| **Phase 1b** | 🗃️ Database Agent | None | ✅ Yes (with 1a) |
+| **Phase 2** | 💻 .NET Application Agent | Merge Phase 1a + 1b first | ❌ Sequential |
+| **Phase 3** | 🚀 DevOps Agent | Merge Phase 2 first | ❌ Sequential |
+| **Phase 4** | 🧪 Tester Agent | Merge Phase 3 first | ❌ Sequential |
+
+> **Important:** Always merge the PR from the current phase before creating the issue for the next phase. Each agent depends on files created by the previous agents being present in the default branch.
+
+#### What's in Each Template
+
+Each issue template includes:
+- **Instructions** — which files to read and in what order
+- **Source prompts** — the specific prompt files the agent should follow
+- **Deliverables checklist** — every file the agent must create
+- **Key rules** — domain-specific pitfalls to avoid
+- **Validation checklist** — how to verify the work is correct
+
+### Contract Validation Between Phases
+
+Agents communicate through shared contracts. The most critical alignment points to check at each merge:
+
+| Merge Point | What to Verify |
+|-------------|---------------|
+| After Phase 1 | Bicep output names are documented; column mapping table is complete |
+| After Phase 2 | All `GetOrdinal()` calls match stored procedure aliases; config keys match Bicep outputs |
+| After Phase 3 | Deploy scripts read the correct Bicep output names; App Service settings match `appsettings.json` keys |
+| After Phase 4 | Tests cover all endpoints, pages, and scripts from prior phases |
+
+See `.github/agents/orchestrator-agent.md` for the full validation checklist.
+
+### Alternative: Single-Agent Mode
+
+If you prefer the original single-agent approach, create one issue and assign it to Copilot:
+
+```
+Title: Modernise my app
+Body:  Read the prompt-order file and complete all tasks.
+```
+
+This uses the original `app-mod-booster.agent.md` which reads all prompts sequentially.
+
+---
+
 ## 🏗️ Architecture
 
 The application uses a modern, secure Azure architecture:
@@ -99,6 +205,8 @@ Open your browser to:
 
 ## 📖 Documentation
 
+- **[Agent Instructions](./.github/agents/)**: Specialist agent instruction files
+- **[Orchestrator Guide](./.github/agents/orchestrator-agent.md)**: Multi-agent sequencing and validation
 - **[Infrastructure Deployment](./deploy-infra/README.md)**: Detailed infrastructure deployment guide
 - **[Application Deployment](./deploy-app/README.md)**: Application deployment instructions
 - **[Architecture](./ARCHITECTURE.md)**: System architecture and design
@@ -183,8 +291,16 @@ Navigate to `https://localhost:5001/Index`
 ```
 App-Mod-Booster0.7/
 ├── .github/
+│   ├── agents/             # Specialist agent instructions
+│   │   ├── infra-agent.md      # 🏗️ Infrastructure (Bicep)
+│   │   ├── database-agent.md   # 🗃️ Database (SQL)
+│   │   ├── dotnet-agent.md     # 💻 .NET Application
+│   │   ├── devops-agent.md     # 🚀 DevOps (deployment)
+│   │   ├── tester-agent.md     # 🧪 Tester (E2E tests)
+│   │   ├── orchestrator-agent.md # 🎯 Orchestrator
+│   │   └── agent-context-schema.json # Shared contract
 │   ├── workflows/          # GitHub Actions workflows
-│   └── CICD-SETUP.md       # CI/CD setup guide
+│   └── copilot-instructions.md # Shared rules for all agents
 ├── deploy-infra/           # Infrastructure as Code
 │   ├── modules/            # Bicep modules
 │   ├── main.bicep          # Main orchestration template
