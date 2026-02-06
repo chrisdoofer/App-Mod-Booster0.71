@@ -2,7 +2,6 @@
 name: "🚀 Phase 3 — DevOps Agent"
 about: "Build PowerShell deployment scripts, unified orchestrator, and GitHub Actions CI/CD"
 title: "🚀 Phase 3 — Build Deployment Scripts & CI/CD"
-labels: ["agent:devops", "phase:3"]
 ---
 
 > **Phase 3** — Depends on Phase 1 (Infrastructure + Database) and Phase 2 (.NET App). **Merge all prior PRs before starting this phase.**

@@ -2,7 +2,6 @@
 name: "🗃️ Phase 1b — Database Agent"
 about: "Build the SQL schema and all stored procedures with correct column mappings"
 title: "🗃️ Phase 1b — Build Database Schema & Stored Procedures"
-labels: ["agent:database", "phase:1"]
 ---
 
 > **Phase 1b** — Can run in parallel with Phase 1a (Infrastructure). No dependencies on other agents.

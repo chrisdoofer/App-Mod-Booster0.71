@@ -2,7 +2,6 @@
 name: "💻 Phase 2 — .NET Application Agent"
 about: "Build the complete ASP.NET 8 Razor Pages application with API, services, and chat"
 title: "💻 Phase 2 — Build .NET Application"
-labels: ["agent:dotnet", "phase:2"]
 ---
 
 > **Phase 2** — Depends on Phase 1a (Infrastructure) and Phase 1b (Database). **Merge both Phase 1 PRs before starting this phase.**

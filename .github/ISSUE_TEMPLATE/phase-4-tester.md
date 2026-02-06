@@ -2,7 +2,6 @@
 name: "🧪 Phase 4 — Tester Agent"
 about: "Build unit tests, integration tests, API tests, and post-deployment smoke tests"
 title: "🧪 Phase 4 — Build End-to-End Tests"
-labels: ["agent:tester", "phase:4"]
 ---
 
 > **Phase 4** — Depends on all prior phases. **Merge all Phase 1–3 PRs before starting this phase.**

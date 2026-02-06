@@ -2,7 +2,6 @@
 name: "🏗️ Phase 1a — Infrastructure Agent"
 about: "Build all Azure infrastructure Bicep modules (App Service, SQL, Identity, Monitoring, GenAI)"
 title: "🏗️ Phase 1a — Build Azure Infrastructure (Bicep)"
-labels: ["agent:infra", "phase:1"]
 ---
 
 > **Phase 1a** — Can run in parallel with Phase 1b (Database). No dependencies on other agents.
