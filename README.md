@@ -205,14 +205,29 @@ Open your browser to:
 
 ## 📖 Documentation
 
+### Agent and Architecture Documentation
 - **[Agent Instructions](./.github/agents/)**: Specialist agent instruction files
 - **[Orchestrator Guide](./.github/agents/orchestrator-agent.md)**: Multi-agent sequencing and validation
 - **[Infrastructure Deployment](./deploy-infra/README.md)**: Detailed infrastructure deployment guide
 - **[Application Deployment](./deploy-app/README.md)**: Application deployment instructions
 - **[Architecture](./ARCHITECTURE.md)**: System architecture and design
 - **[CI/CD Setup](./.github/CICD-SETUP.md)**: GitHub Actions with OIDC authentication
+
+### Database Documentation
 - **[Database Schema](./Database-Schema/database_schema.sql)**: SQL schema and sample data
 - **[Stored Procedures](./stored-procedures.sql)**: Database stored procedures
+
+### Testing Documentation
+- **[Test Suite](./tests/ExpenseManagement.Tests/README.md)**: Comprehensive test suite documentation
+- **[Testing Lessons Learned](./prompts/prompt-031-testing-lessons-learned)**: Patterns and pitfalls from test development
+
+### Error Prevention
+- **[Common Errors](./COMMON-ERRORS.md)**: ⚠️ Critical errors and how to prevent them
+  - PowerShell scripting errors (splatting, JSON parsing, sqlcmd)
+  - Testing configuration errors (Program class, WebApplicationFactory)
+  - Bicep template errors (utcNow, newGuid, circular dependencies)
+  - Database connection errors (column mapping, managed identity)
+  - Configuration errors (connection strings, GenAI settings)
 
 ## 🎯 Usage
 

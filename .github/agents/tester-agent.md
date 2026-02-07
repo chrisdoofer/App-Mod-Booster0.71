@@ -48,6 +48,8 @@ There is no existing prompt file for testing — you are defining this capabilit
 3. `.github/agents/dotnet-agent.md` — API endpoints and pages to test
 4. `.github/agents/devops-agent.md` — Deployment scripts and context file to validate
 
+**After completing the test suite, document lessons learned in `prompts/prompt-031-testing-lessons-learned` for future reference.**
+
 ## Test Categories
 
 ### 1. Infrastructure Validation

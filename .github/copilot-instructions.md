@@ -48,6 +48,11 @@ prompts/               ← Original prompt files (reference only)
 ### 3. Plan Before Working
 - Before making changes, create a plan with checkbox items in the PR description
 - Include the relevant prompt file name in brackets next to each task
+
+### 4. Error Prevention
+- **ALWAYS** consult `COMMON-ERRORS.md` before making changes
+- Review `prompts/prompt-031-testing-lessons-learned` when creating tests
+- Common pitfalls documented at the repo root - prevention is easier than debugging
 - Include a final "Completed all work" checkbox that is only ticked when everything is done
 
 ### 4. Agent Handoff via Context File

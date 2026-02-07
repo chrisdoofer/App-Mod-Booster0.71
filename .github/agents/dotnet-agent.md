@@ -43,6 +43,16 @@ src/ExpenseManagement/
 - `.github/workflows/` — owned by the DevOps Agent
 - `tests/` — owned by the Tester Agent
 
+### Critical Testing Requirement
+**IMPORTANT:** To enable `WebApplicationFactory` testing, `Program.cs` MUST include this line at the bottom:
+
+```csharp
+// Make Program class accessible to tests
+public partial class Program { }
+```
+
+Without this, tests will fail with "Program is inaccessible due to its protection level." See `prompts/prompt-031-testing-lessons-learned` for full details.
+
 ## Source Prompts (Read These)
 
 Read the following prompts from the `prompts/` folder in this exact order:
