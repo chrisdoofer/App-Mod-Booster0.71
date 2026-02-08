@@ -73,11 +73,23 @@ jobs:
           echo "Waiting 60 seconds for App Service settings to apply..."
           sleep 60
       
+      - name: Verify deployment context exists
+        shell: pwsh
+        run: |
+          if (Test-Path ".deployment-context.json") {
+            Write-Host "✓ Deployment context file found"
+            Get-Content ".deployment-context.json" | Write-Host
+          } else {
+            Write-Error "deployment-context.json not found. Infrastructure deployment may have failed silently."
+            exit 1
+          }
+
       - name: Upload deployment context
         uses: actions/upload-artifact@v4
         with:
           name: deployment-context
           path: .deployment-context.json
+          include-hidden-files: true
           retention-days: 1
 
   deploy-application:

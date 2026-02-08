@@ -423,6 +423,33 @@ public class ChatService
 
 ---
 
+### ❌ Error: "No files were found with the provided path" (upload-artifact)
+
+**Cause:** `actions/upload-artifact@v4` defaults `include-hidden-files` to `false`. Files starting with `.` (like `.deployment-context.json`) are treated as hidden and silently skipped.
+
+**Bad Code:**
+```yaml
+- uses: actions/upload-artifact@v4
+  with:
+    name: deployment-context
+    path: .deployment-context.json  # ❌ Silently skipped — hidden file!
+```
+
+**Good Code:**
+```yaml
+- uses: actions/upload-artifact@v4
+  with:
+    name: deployment-context
+    path: .deployment-context.json
+    include-hidden-files: true  # ✅ Required for dotfiles
+```
+
+**Where This Applies:** Any `upload-artifact` step uploading files with a `.` prefix
+
+**Reference:** `prompts/prompt-028-github-actions-cicd`
+
+---
+
 ## Quick Reference: Critical Files to Check
 
 Before completing any phase, verify these patterns:
@@ -437,6 +464,7 @@ Before completing any phase, verify these patterns:
 ### ✅ GitHub Actions Workflow
 - [ ] Every step that runs a script reading `$env:AZURE_CLIENT_ID` has `env: AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}`
 - [ ] GitHub Actions uses `vars.*` (variables), not `secrets.*`, for OIDC IDs
+- [ ] `upload-artifact` steps for dotfiles (`.deployment-context.json`) use `include-hidden-files: true`
 
 ### ✅ Bicep Templates
 - [ ] `utcNow()` only in parameter defaults

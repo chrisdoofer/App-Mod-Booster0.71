@@ -82,6 +82,7 @@ prompts/               ← Original prompt files (reference only)
 10. **Resource group reuse** → always use fresh names with date/time suffix
 11. **GenAI deployment** → uses `-DeployGenAI` switch, not a separate script
 12. **GitHub Actions `vars.*` are NOT env vars** → if a script reads `$env:AZURE_CLIENT_ID`, the workflow step must explicitly map `env: AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}`
+13. **Hidden files in artifacts** → `upload-artifact@v4` skips dotfiles by default; use `include-hidden-files: true` for `.deployment-context.json`
 
 ## Shared Context Schema
 
