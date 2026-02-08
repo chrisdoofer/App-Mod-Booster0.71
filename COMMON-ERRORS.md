@@ -395,6 +395,34 @@ public class ChatService
 
 ---
 
+## CI/CD Errors
+
+### ❌ Error: "AZURE_CLIENT_ID environment variable not found"
+
+**Cause:** GitHub Actions `vars.*` values are **not** automatically available as environment variables inside workflow steps. A script reading `$env:AZURE_CLIENT_ID` will find nothing unless the step explicitly maps the variable.
+
+**Bad Code:**
+```yaml
+- name: Deploy Infrastructure
+  shell: pwsh
+  run: ./deploy-infra/deploy.ps1 @infraArgs  # ❌ $env:AZURE_CLIENT_ID is empty!
+```
+
+**Good Code:**
+```yaml
+- name: Deploy Infrastructure
+  shell: pwsh
+  env:
+    AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  run: ./deploy-infra/deploy.ps1 @infraArgs  # ✅ env var available to script
+```
+
+**Where This Applies:** Any workflow step where a PowerShell script reads `$env:*` variables sourced from `vars.*`
+
+**Reference:** `prompts/prompt-028-github-actions-cicd`
+
+---
+
 ## Quick Reference: Critical Files to Check
 
 Before completing any phase, verify these patterns:
@@ -405,6 +433,10 @@ Before completing any phase, verify these patterns:
 - [ ] No bash syntax (`<<<`, `@-`) in any `.ps1` file — use temp files for JSON payloads
 - [ ] All sqlcmd calls use temp files and `-i` flag (no piping)
 - [ ] sqlcmd auth parameter is quoted: `"--authentication-method=..."`
+
+### ✅ GitHub Actions Workflow
+- [ ] Every step that runs a script reading `$env:AZURE_CLIENT_ID` has `env: AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}`
+- [ ] GitHub Actions uses `vars.*` (variables), not `secrets.*`, for OIDC IDs
 
 ### ✅ Bicep Templates
 - [ ] `utcNow()` only in parameter defaults

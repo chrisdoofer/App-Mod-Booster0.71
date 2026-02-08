@@ -51,6 +51,8 @@ jobs:
       
       - name: Deploy Infrastructure
         shell: pwsh
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
         run: |
           $deployGenAI = "${{ github.event.inputs.deployGenAI }}" -eq "true"
           

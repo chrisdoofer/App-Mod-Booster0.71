@@ -127,7 +127,17 @@ A workflow file at `.github/workflows/deploy.yml` should:
        sleep 60
    ```
 
-5. Call the same PowerShell deployment scripts used locally
+5. If a PowerShell script reads `$env:AZURE_CLIENT_ID`, the workflow step **must** explicitly map it:
+   ```yaml
+   - name: Deploy Infrastructure
+     shell: pwsh
+     env:
+       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+     run: ./deploy-infra/deploy.ps1 @infraArgs
+   ```
+   GitHub Actions `vars.*` are **not** automatically available as environment variables — they must be explicitly passed via `env:` on each step that needs them.
+
+6. Call the same PowerShell deployment scripts used locally
 
 ### Setup Documentation
 
