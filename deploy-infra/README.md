@@ -49,17 +49,49 @@ Bicep resolves most ordering automatically via parameter references. The explici
 ## Prerequisites
 
 - Azure CLI 2.50+ with Bicep CLI 0.20+
+- [go-sqlcmd](https://github.com/microsoft/go-sqlcmd) — `winget install sqlcmd` (Windows)
 - Authenticated to the target subscription: `az login`
-- A resource group already created (the templates deploy into an existing group)
-
-```powershell
-# Create a resource group
-az group create --name rg-expensemgmt-dev --location uksouth
-```
+- PowerShell 7+ recommended
 
 ---
 
-## Deployment Commands
+## Recommended: Use the PowerShell Deployment Script
+
+The `deploy.ps1` script fully automates the entire infrastructure setup — Bicep deployment, SQL schema import, managed identity user creation, stored procedures, and App Service configuration.
+
+### Standard deployment (no GenAI)
+
+```powershell
+.\deploy-infra\deploy.ps1 -ResourceGroup "rg-expensemgmt-20251206" -Location "uksouth"
+```
+
+### With Azure OpenAI + AI Search
+
+```powershell
+.\deploy-infra\deploy.ps1 -ResourceGroup "rg-expensemgmt-20251206" -Location "uksouth" -DeployGenAI
+```
+
+### Skip database setup (for redeployments)
+
+```powershell
+.\deploy-infra\deploy.ps1 -ResourceGroup "rg-expensemgmt-20251206" -Location "uksouth" -SkipDatabase
+```
+
+### Parameters
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `ResourceGroup` | ✓ | — | Azure resource group name |
+| `Location` | ✓ | — | Azure region (e.g. `uksouth`, `eastus`) |
+| `BaseName` | | `expensemgmt` | Base name for resource naming |
+| `DeployGenAI` | | `false` | Deploy Azure OpenAI + AI Search |
+| `SkipDatabase` | | `false` | Skip SQL schema + user setup |
+
+> **Tip:** Use a unique resource group name per deployment (e.g. with a date suffix) to avoid ARM caching issues.
+
+---
+
+## Manual Deployment Commands
 
 ### Standard Deployment (no GenAI)
 
