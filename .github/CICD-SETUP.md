@@ -89,17 +89,22 @@ Create federated credentials for the `main` branch:
 
 ```powershell
 # For main branch deployments
+# Write credential JSON to a temp file (never use bash <<EOF or @- syntax in PowerShell)
+$mainBranchCred = @{
+    name      = "github-main-branch"
+    issuer    = "https://token.actions.githubusercontent.com"
+    subject   = "repo:$githubOrg/${githubRepo}:ref:refs/heads/main"
+    audiences = @("api://AzureADTokenExchange")
+} | ConvertTo-Json -Depth 5
+
+$tempCredFile = [System.IO.Path]::GetTempFileName() + ".json"
+$mainBranchCred | Out-File -FilePath $tempCredFile -Encoding UTF8
+
 az ad app federated-credential create `
     --id $appId `
-    --parameters @- <<EOF
-{
-  "name": "github-main-branch",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:$githubOrg/${githubRepo}:ref:refs/heads/main",
-  "audiences": ["api://AzureADTokenExchange"]
-}
-EOF
+    --parameters "@$tempCredFile"
 
+Remove-Item -Path $tempCredFile -Force -ErrorAction SilentlyContinue
 Write-Host "✓ Federated credential created for main branch" -ForegroundColor Green
 ```
 
@@ -107,17 +112,21 @@ Write-Host "✓ Federated credential created for main branch" -ForegroundColor G
 
 ```powershell
 # For pull request deployments (optional)
+$prCred = @{
+    name      = "github-pull-requests"
+    issuer    = "https://token.actions.githubusercontent.com"
+    subject   = "repo:$githubOrg/${githubRepo}:pull_request"
+    audiences = @("api://AzureADTokenExchange")
+} | ConvertTo-Json -Depth 5
+
+$tempCredFile = [System.IO.Path]::GetTempFileName() + ".json"
+$prCred | Out-File -FilePath $tempCredFile -Encoding UTF8
+
 az ad app federated-credential create `
     --id $appId `
-    --parameters @- <<EOF
-{
-  "name": "github-pull-requests",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:$githubOrg/${githubRepo}:pull_request",
-  "audiences": ["api://AzureADTokenExchange"]
-}
-EOF
+    --parameters "@$tempCredFile"
 
+Remove-Item -Path $tempCredFile -Force -ErrorAction SilentlyContinue
 Write-Host "✓ Federated credential created for pull requests" -ForegroundColor Green
 ```
 

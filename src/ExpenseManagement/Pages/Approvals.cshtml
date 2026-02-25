@@ -1,0 +1,142 @@
+@page
+@model ExpenseManagement.Pages.ApprovalsModel
+@{
+    ViewData["Title"] = "Approvals";
+}
+
+@* ── Error banner ─────────────────────────────────────────────────────── *@
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-warning alert-dismissible fade show border-start border-warning border-4 mb-4" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Database Connection Issue</h5>
+        <p class="mb-0">@Model.ErrorMessage</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-check2-circle me-2 text-primary"></i>Expense Approvals</h1>
+        <p class="text-muted mb-0">Review and approve submitted expenses</p>
+    </div>
+</div>
+
+@* ── Reviewer selection ───────────────────────────────────────────────── *@
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-sm-5">
+                <label for="reviewerSelect" class="form-label fw-semibold">Acting as Reviewer</label>
+                <select id="reviewerSelect" class="form-select">
+                    <option value="">-- Select reviewer --</option>
+                    @foreach (var user in Model.Users)
+                    {
+                        <option value="@user.UserId">@user.UserName (@user.RoleName)</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Submitted expenses ───────────────────────────────────────────────── *@
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+            <i class="bi bi-hourglass-split me-2 text-warning"></i>
+            Pending Approval (@Model.SubmittedExpenses.Count)
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.SubmittedExpenses.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-check-all fs-1 d-block mb-2 text-success"></i>
+                <p>No expenses are waiting for approval.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Employee</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th class="text-end">Amount</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var expense in Model.SubmittedExpenses)
+                        {
+                            <tr>
+                                <td class="text-muted small">@expense.ExpenseId</td>
+                                <td>@expense.UserName</td>
+                                <td><span class="badge bg-light text-dark border">@expense.CategoryName</span></td>
+                                <td>@expense.Description</td>
+                                <td>@expense.ExpenseDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-end fw-semibold">£@expense.Amount.ToString("N2")</td>
+                                <td class="text-muted small">@expense.SubmittedAt?.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    <form method="post" class="d-inline approve-form"
+                                          asp-page-handler="Approve"
+                                          asp-route-id="@expense.ExpenseId">
+                                        <input type="hidden" name="reviewerId" class="reviewer-id-input" value="" />
+                                        <button type="submit" class="btn btn-sm btn-success approve-btn"
+                                                title="Approve">
+                                            <i class="bi bi-check-lg"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form method="post" class="d-inline reject-form"
+                                          asp-page-handler="Reject"
+                                          asp-route-id="@expense.ExpenseId">
+                                        <input type="hidden" name="reviewerId" class="reviewer-id-input" value="" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger reject-btn"
+                                                title="Reject">
+                                            <i class="bi bi-x-lg"></i> Reject
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Sync reviewer ID into all approve/reject forms
+        const reviewerSelect = document.getElementById('reviewerSelect');
+        function syncReviewerId() {
+            const val = reviewerSelect.value;
+            document.querySelectorAll('.reviewer-id-input').forEach(inp => inp.value = val);
+        }
+        reviewerSelect.addEventListener('change', syncReviewerId);
+
+        // Validate reviewer is selected before submit
+        document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                if (!reviewerSelect.value) {
+                    e.preventDefault();
+                    alert('Please select a reviewer before approving or rejecting.');
+                }
+            });
+        });
+    </script>
+}

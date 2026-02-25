@@ -1,0 +1,127 @@
+@page
+@model ExpenseManagement.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@* ── Error banner (shown when DB is unavailable) ─────────────────────── *@
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-warning alert-dismissible fade show border-start border-warning border-4 mb-4" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Database Connection Issue</h5>
+        <p class="mb-1">@Model.ErrorMessage</p>
+        <p class="mb-0 small text-muted">
+            <strong>Showing sample data.</strong> If this is a managed identity issue, check:
+            <ul class="mb-0">
+                <li>The <code>AZURE_CLIENT_ID</code> App Service setting is set to the managed identity client ID</li>
+                <li>The connection string <code>User Id</code> parameter matches the client ID (not the principal ID)</li>
+                <li>The managed identity has been granted <code>db_datareader</code> / <code>db_datawriter</code> on the database</li>
+            </ul>
+        </p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@* ── Page header ──────────────────────────────────────────────────────── *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</h1>
+        <p class="text-muted mb-0">Overview of all expense activity</p>
+    </div>
+    <a asp-page="/AddExpense" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Expense
+    </a>
+</div>
+
+@* ── Summary cards ────────────────────────────────────────────────────── *@
+<div class="row g-3 mb-4">
+    @foreach (var summary in Model.Summary)
+    {
+        var (icon, colorClass) = summary.StatusName switch
+        {
+            "Draft"     => ("bi-pencil-square", "text-secondary"),
+            "Submitted" => ("bi-send", "text-warning"),
+            "Approved"  => ("bi-check-circle-fill", "text-success"),
+            "Rejected"  => ("bi-x-circle-fill", "text-danger"),
+            _           => ("bi-circle", "text-primary")
+        };
+        <div class="col-sm-6 col-xl-3">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small fw-semibold text-uppercase">@summary.StatusName</span>
+                        <i class="bi @icon @colorClass fs-4"></i>
+                    </div>
+                    <div class="h4 mb-1 fw-bold">@summary.Count expense@(summary.Count != 1 ? "s" : "")</div>
+                    <div class="text-muted">£@summary.TotalAmount.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* ── Recent expenses ──────────────────────────────────────────────────── *@
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Expenses</h5>
+        <a asp-page="/Expenses" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.RecentExpenses.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                <p>No expenses found. <a asp-page="/AddExpense">Add your first expense</a></p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th class="text-end">Amount</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var expense in Model.RecentExpenses)
+                        {
+                            <tr>
+                                <td>@expense.Description</td>
+                                <td><span class="badge bg-light text-dark border">@expense.CategoryName</span></td>
+                                <td>@expense.UserName</td>
+                                <td>@expense.ExpenseDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-end fw-semibold">£@expense.Amount.ToString("N2")</td>
+                                <td>
+                                    @{
+                                        var badgeColor = expense.StatusName switch
+                                        {
+                                            "Draft"     => "secondary",
+                                            "Submitted" => "warning text-dark",
+                                            "Approved"  => "success",
+                                            "Rejected"  => "danger",
+                                            _           => "secondary"
+                                        };
+                                    }
+                                    <span class="badge bg-@badgeColor">@expense.StatusName</span>
+                                </td>
+                                <td>
+                                    <a asp-page="/Expenses" asp-route-id="@expense.ExpenseId"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
