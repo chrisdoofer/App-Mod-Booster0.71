@@ -1,0 +1,207 @@
+@page
+@model ExpenseManagement.Pages.ChatModel
+@{
+    ViewData["Title"] = "AI Chat";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-chat-dots me-2 text-primary"></i>AI Expense Assistant
+                </h1>
+                <p class="text-muted mb-0">Ask questions about expenses or perform actions using natural language</p>
+            </div>
+        </div>
+
+        @if (!Model.IsConfigured)
+        {
+            <!-- GenAI not deployed — show friendly message -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-robot fs-1 text-muted d-block mb-3"></i>
+                    <h4 class="mb-2">AI Chat Not Available</h4>
+                    <p class="text-muted mb-3">
+                        AI Chat is not available yet. To enable it, redeploy using the
+                        <code class="bg-light px-2 py-1 rounded">-DeployGenAI</code> switch.
+                    </p>
+                    <p class="text-muted small">
+                        Once enabled, you can ask questions like:<br />
+                        <em>"Show me all submitted expenses"</em> &nbsp;·&nbsp;
+                        <em>"Approve expense #5"</em> &nbsp;·&nbsp;
+                        <em>"Add a £45 travel expense for Alice"</em>
+                    </p>
+                    <a asp-page="/Expenses" class="btn btn-primary mt-2">
+                        <i class="bi bi-list-ul me-1"></i>View Expenses Instead
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Chat interface -->
+            <div class="card shadow-sm border-0" style="height: calc(100vh - 220px); display: flex; flex-direction: column;">
+                <!-- Message area -->
+                <div class="card-body flex-grow-1 overflow-auto p-3" id="chatMessages" style="background: #f8f9fa;">
+                    <!-- Welcome message -->
+                    <div class="chat-message assistant mb-3">
+                        <div class="d-flex align-items-start">
+                            <div class="chat-avatar bg-primary text-white rounded-circle me-2 flex-shrink-0"
+                                 style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="chat-bubble bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                <p class="mb-0">
+                                    Hello! I'm your expense management assistant. I can help you:<br />
+                                    • View and filter expenses<br />
+                                    • Create new expense records<br />
+                                    • Approve or reject submitted expenses<br />
+                                    • Get expense summaries and reports<br /><br />
+                                    What would you like to do?
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Previous messages from history -->
+                    @foreach (var msg in Model.MessageHistory)
+                    {
+                        if (msg.Role == "user")
+                        {
+                            <div class="chat-message user mb-3">
+                                <div class="d-flex align-items-start flex-row-reverse">
+                                    <div class="chat-avatar bg-secondary text-white rounded-circle ms-2 flex-shrink-0"
+                                         style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="chat-bubble bg-primary text-white rounded-3 px-3 py-2 shadow-sm">
+                                        <p class="mb-0">@msg.Content</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="chat-message assistant mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="chat-avatar bg-primary text-white rounded-circle me-2 flex-shrink-0"
+                                         style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="bi bi-robot"></i>
+                                    </div>
+                                    <div class="chat-bubble bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                        <p class="mb-0 chat-content">@Html.Raw(FormatMessage(msg.Content))</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    <!-- Thinking indicator (hidden by default) -->
+                    <div class="chat-message assistant mb-3 d-none" id="thinkingIndicator">
+                        <div class="d-flex align-items-start">
+                            <div class="chat-avatar bg-primary text-white rounded-circle me-2 flex-shrink-0"
+                                 style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="chat-bubble bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                <span class="typing-dots">
+                                    <span>.</span><span>.</span><span>.</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input area -->
+                <div class="card-footer bg-white border-top p-3">
+                    <form id="chatForm" method="post">
+                        <input type="hidden" name="historyJson" id="historyJson" value="@Model.HistoryJson" />
+                        <div class="input-group">
+                            <input type="text" name="userMessage" id="userMessageInput"
+                                   class="form-control form-control-lg"
+                                   placeholder="Ask about expenses... (e.g. 'Show me all submitted expenses')"
+                                   autocomplete="off" required />
+                            <button type="submit" class="btn btn-primary btn-lg" id="sendBtn">
+                                <i class="bi bi-send-fill me-1"></i>Send
+                            </button>
+                        </div>
+                        <div class="form-text mt-1">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Try: "Show draft expenses", "Create a £50 meals expense for user 1", "Approve expense #3"
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.IsConfigured)
+    {
+        <script>
+            // Scroll chat to bottom on load
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Show thinking indicator on form submit
+            const chatForm = document.getElementById('chatForm');
+            const thinkingIndicator = document.getElementById('thinkingIndicator');
+            const sendBtn = document.getElementById('sendBtn');
+
+            chatForm.addEventListener('submit', function () {
+                thinkingIndicator.classList.remove('d-none');
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Thinking...';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+
+            // Format markdown content in assistant messages
+            document.querySelectorAll('.chat-content').forEach(el => {
+                el.innerHTML = formatMarkdown(el.textContent);
+            });
+
+            function formatMarkdown(text) {
+                // Escape HTML first for security
+                let safe = text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                // Convert **bold** to <strong>
+                safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                // Convert numbered lists
+                safe = safe.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+                safe = safe.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
+
+                // Convert bullet lists
+                safe = safe.replace(/^[•\-\*]\s+(.+)$/gm, '<li>$1</li>');
+
+                // Convert newlines to <br>
+                safe = safe.replace(/\n/g, '<br />');
+
+                return safe;
+            }
+        </script>
+    }
+}
+
+@functions {
+    string FormatMessage(string content)
+    {
+        if (string.IsNullOrEmpty(content)) return string.Empty;
+
+        // Escape HTML
+        var safe = System.Web.HttpUtility.HtmlEncode(content);
+
+        // Convert **bold** to <strong>
+        safe = System.Text.RegularExpressions.Regex.Replace(safe, @"\*\*(.*?)\*\*", "<strong>$1</strong>");
+
+        // Convert newlines to <br>
+        safe = safe.Replace("\n", "<br />");
+
+        return safe;
+    }
+}

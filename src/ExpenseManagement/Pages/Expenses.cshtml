@@ -1,0 +1,148 @@
+@page
+@model ExpenseManagement.Pages.ExpensesModel
+@{
+    ViewData["Title"] = "Expenses";
+}
+
+@* ── Error banner ─────────────────────────────────────────────────────── *@
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-warning alert-dismissible fade show border-start border-warning border-4 mb-4" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Database Connection Issue</h5>
+        <p class="mb-1">@Model.ErrorMessage</p>
+        <p class="mb-0 small text-muted">Displaying sample data while the database is unavailable.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-list-ul me-2 text-primary"></i>Expenses</h1>
+        <p class="text-muted mb-0">View and manage all expense records</p>
+    </div>
+    <a asp-page="/AddExpense" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Expense
+    </a>
+</div>
+
+@* ── Filters ──────────────────────────────────────────────────────────── *@
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-sm-4">
+                <label for="statusFilter" class="form-label fw-semibold">Filter by Status</label>
+                <select id="statusFilter" name="statusId" class="form-select">
+                    <option value="">All Statuses</option>
+                    @foreach (var status in Model.Statuses)
+                    {
+                        <option value="@status.StatusId" selected="@(Model.SelectedStatusId == status.StatusId)">
+                            @status.StatusName
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-4">
+                <label for="userFilter" class="form-label fw-semibold">Filter by User</label>
+                <select id="userFilter" name="userId" class="form-select">
+                    <option value="">All Users</option>
+                    @foreach (var user in Model.Users)
+                    {
+                        <option value="@user.UserId" selected="@(Model.SelectedUserId == user.UserId)">
+                            @user.UserName
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-4">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-funnel me-1"></i>Apply Filter
+                </button>
+                <a asp-page="/Expenses" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ── Expense table ────────────────────────────────────────────────────── *@
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <span class="fw-semibold">@Model.Expenses.Count expense@(Model.Expenses.Count != 1 ? "s" : "") found</span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Expenses.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                <p>No expenses match the selected filters.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th class="text-end">Amount</th>
+                            <th>Status</th>
+                            <th>Reviewer</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var expense in Model.Expenses)
+                        {
+                            <tr>
+                                <td class="text-muted small">@expense.ExpenseId</td>
+                                <td>@expense.Description</td>
+                                <td><span class="badge bg-light text-dark border">@expense.CategoryName</span></td>
+                                <td>@expense.UserName</td>
+                                <td>@expense.ExpenseDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-end fw-semibold">£@expense.Amount.ToString("N2")</td>
+                                <td>
+                                    @{
+                                        var badgeClass = expense.StatusName switch
+                                        {
+                                            "Draft" => "secondary",
+                                            "Submitted" => "warning text-dark",
+                                            "Approved" => "success",
+                                            "Rejected" => "danger",
+                                            _ => "secondary"
+                                        };
+                                    }
+                                    <span class="badge bg-@badgeClass">@expense.StatusName</span>
+                                </td>
+                                <td class="text-muted small">@(expense.ReviewerName ?? "–")</td>
+                                <td>
+                                    @if (expense.StatusName == "Draft")
+                                    {
+                                        <form method="post" asp-page-handler="Submit" asp-route-id="@expense.ExpenseId"
+                                              class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                    title="Submit for approval">
+                                                <i class="bi bi-send"></i>
+                                            </button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@expense.ExpenseId"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Delete this expense?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

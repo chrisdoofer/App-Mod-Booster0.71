@@ -1,0 +1,127 @@
+@page
+@model ExpenseManagement.Pages.AddExpenseModel
+@{
+    ViewData["Title"] = "Add Expense";
+}
+
+@* ── Error banner ─────────────────────────────────────────────────────── *@
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 mb-4" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error</h5>
+        <p class="mb-0">@Model.ErrorMessage</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>New Expense</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.UserId" class="form-label fw-semibold">
+                            Employee <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Input.UserId" class="form-select" asp-items="Model.UserSelectList">
+                            <option value="">-- Select employee --</option>
+                        </select>
+                        <span asp-validation-for="Input.UserId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.CategoryId" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Input.CategoryId" class="form-select" asp-items="Model.CategorySelectList">
+                            <option value="">-- Select category --</option>
+                        </select>
+                        <span asp-validation-for="Input.CategoryId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6 mb-3">
+                            <label for="amountPounds" class="form-label fw-semibold">
+                                Amount (£) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">£</span>
+                                <input type="number" id="amountPounds" name="amountPounds"
+                                       class="form-control" min="0.01" step="0.01"
+                                       placeholder="0.00" required />
+                            </div>
+                            <div class="form-text">Enter amount in pounds (e.g. 45.00)</div>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label asp-for="Input.Currency" class="form-label fw-semibold">Currency</label>
+                            <select asp-for="Input.Currency" class="form-select">
+                                <option value="GBP">GBP — British Pound</option>
+                                <option value="USD">USD — US Dollar</option>
+                                <option value="EUR">EUR — Euro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.ExpenseDate" class="form-label fw-semibold">
+                            Expense Date <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Input.ExpenseDate" type="date" class="form-control"
+                               max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="Input.ExpenseDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.Description" class="form-label fw-semibold">Description</label>
+                        <textarea asp-for="Input.Description" class="form-control" rows="3"
+                                  placeholder="Describe the expense..."></textarea>
+                        <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Expense
+                        </button>
+                        <a asp-page="/Expenses" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Convert pounds input to minor units before submit
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const amountPoundsInput = document.getElementById('amountPounds');
+            const amountPounds = parseFloat(amountPoundsInput.value);
+            if (!isNaN(amountPounds)) {
+                const amountMinor = Math.round(amountPounds * 100);
+                let hiddenInput = document.getElementById('Input_AmountMinor');
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.id = 'Input_AmountMinor';
+                    hiddenInput.name = 'Input.AmountMinor';
+                    this.appendChild(hiddenInput);
+                }
+                hiddenInput.value = amountMinor;
+            }
+        });
+    </script>
+    @{ await Html.RenderPartialAsync("_ValidationScripts.partial"); }
+}
